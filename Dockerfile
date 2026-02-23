@@ -21,14 +21,15 @@ ENV build_deps="wget xz-utils git gdb tcl software-properties-common"
 RUN apt-get update --fix-missing
 RUN apt-get install -y $build_deps $lib_deps
 
-# Add deadsnakes PPA for multiple Python versions 
+# Add deadsnakes PPA for multiple Python versions
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update
-RUN set -ex; \
-    apt-get update && apt-get install -y python3.10-dev python3-pip \
-            && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1;
-RUN python3 -m pip install pysvf -i https://test.pypi.org/simple/
-RUN python3 -m pip install z3-solver
+RUN apt-get install -y python3.10-dev python3.10-venv python3-pip \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+# Bootstrap pip for Python 3.10 and install packages
+RUN python3 -m ensurepip --upgrade \
+    && python3 -m pip install --break-system-packages --extra-index-url https://test.pypi.org/simple/ pysvf \
+    && python3 -m pip install --break-system-packages z3-solver
 
 # Fetch and build SVF source.
 RUN echo "Downloading LLVM and building SVF to " ${HOME}
